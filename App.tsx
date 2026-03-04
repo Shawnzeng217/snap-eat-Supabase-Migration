@@ -84,16 +84,24 @@ const App: React.FC = () => {
         // For now, Profile component reads from userProfile prop.
       }
 
-      // Fetch Scans
-      const { data: scans } = await supabase
+      // Fetch Scans (History: Latest 30)
+      const { data: historyScans } = await supabase
         .from('scans')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(30);
 
-      if (scans) {
-        const formattedScans: Dish[] = scans.map((s: any) => ({
+      // Fetch ALL Saved Items (No limit)
+      const { data: savedScans } = await supabase
+        .from('scans')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_saved', true)
+        .order('created_at', { ascending: false });
+
+      if (historyScans) {
+        const formattedScans: Dish[] = historyScans.map((s: any) => ({
           id: s.id,
           name: s.name,
           originalName: s.original_name,
@@ -106,11 +114,11 @@ const App: React.FC = () => {
           boundingBox: s.bounding_box,
           isMenu: s.is_menu
         }));
-
         setHistory(formattedScans);
+      }
 
-        // Filter saved items
-        const saved = scans.filter((s: any) => s.is_saved).map((s: any) => ({
+      if (savedScans) {
+        const saved: SavedItem[] = savedScans.map((s: any) => ({
           id: s.id,
           name: s.name,
           originalName: s.original_name,
