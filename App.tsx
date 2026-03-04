@@ -89,7 +89,8 @@ const App: React.FC = () => {
         .from('scans')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(30);
 
       if (scans) {
         const formattedScans: Dish[] = scans.map((s: any) => ({
