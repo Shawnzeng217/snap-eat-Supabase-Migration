@@ -38,16 +38,19 @@ const App: React.FC = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) fetchData(session.user.id);
+      if (session) fetchData(session.user.id, false);
       else setLoading(false);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
-      if (session) fetchData(session.user.id);
-      else {
+      if (session) {
+        // If it's just a token refresh or we already have data, do it silently
+        const isAuthEvent = event === 'SIGNED_IN' || event === 'INITIAL_SESSION';
+        fetchData(session.user.id, !isAuthEvent);
+      } else {
         setHistory([]);
         setSavedItems([]);
         setUserProfile(null);
@@ -61,8 +64,8 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchData = async (userId: string) => {
-    setLoading(true);
+  const fetchData = async (userId: string, isSilent = false) => {
+    if (!isSilent) setLoading(true);
     try {
       // Fetch Profile
       const { data: profile } = await supabase
