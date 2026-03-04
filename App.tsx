@@ -47,9 +47,9 @@ const App: React.FC = () => {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (session) {
-        // If it's just a token refresh or we already have data, do it silently
-        const isAuthEvent = event === 'SIGNED_IN' || event === 'INITIAL_SESSION';
-        fetchData(session.user.id, !isAuthEvent);
+        // If we already have a profile or history, refresh the data silently in the background
+        const isInitialLoad = !userProfile && history.length === 0;
+        fetchData(session.user.id, !isInitialLoad);
       } else {
         setHistory([]);
         setSavedItems([]);
